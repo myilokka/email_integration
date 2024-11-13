@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Import</title>
+</head>
+<body>
+
+<h1>Список сообщений</h1>
+
+<table id="checked-messages">
+    <tfoot>
+    <tr>
+        <td colspan="3">Проверенные сообщения: <span id="checked-message-count">0</span></td>
+    </tr>
+    </tfoot>
+</table>
+
+<div id="progress-bar" style="width: 100%; background: #ddd;">
+    <div id="progress" style="width: 0%; background: #4caf50; height: 20px;"></div>
+</div>
+<table id="new-messages">
+    <thead>
+    <tr>
+        <th>Тема</th>
+        <th>Дата отправки</th>
+        <th>Описание</th>
+    </tr>
+    </thead>
+    <tbody id="new-messages-tbody"></tbody>
+</table>
+
+<script>
+    const wsUrl = `ws://${window.location.host}/ws/email_import/`;
+    let ws = null;
+
+    try {
+        ws = new WebSocket(wsUrl);
+    } catch (error) {
+        console.error('Ошибка при создании вебсокета:', error);
+    }
+
+    if (ws) {
+        ws.onopen = () => {
+            console.log('Соединение с вебсокетом установлено');
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.checked_messages) {
+                    const checkedMessageCountElement = document.getElementById("checked-message-count");
+                    if (checkedMessageCountElement) {
+                        checkedMessageCountElement.innerText = data.checked_messages;
+                    } else {
+                        console.error('Элемент с id "checked-message-count" не найден');
+                    }
+                }
+                if (data.progress) {
+                    const progressElement = document.getElementById("progress");
+                    if (progressElement) {
+                        progressElement.style.width = `${data.progress}%`;
+                    } else {
+                        console.error('Элемент с id "progress" не найден');
+                    }
+                }
+                if (data.message) {
+                    const newMessagesTbody = document.getElementById("new-messages-tbody");
+                    if (newMessagesTbody) {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${data.message.subject}</td>
+                            <td>${data.message.send_date}</td>
+                            <td>${data.message.content}</td>
+                        `;
+                        newMessagesTbody.appendChild(row);
+                    } else {
+                        console.error('Элемент с id "new-messages-tbody" не найден');
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка при обработке сообщения:', error);
+            }
+        };
+
+        ws.onerror = (error) => {
+            console.error('Ошибка вебсокета:', error);
+        };
+
+        ws.onclose = () => {
+            console.log('Соединение с вебсокетом закрыто');
+        };
+    }
+</script>
+</body>
+</html>
