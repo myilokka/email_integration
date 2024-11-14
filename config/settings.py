@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 
-from dotenv import load_dotenv
 
 
 def get_env_variable(var_name: str) -> str:
@@ -22,8 +21,8 @@ def get_env_variable(var_name: str) -> str:
         raise Exception(f"Set the {var_name} environment variable")
 
 
-REDIS_HOST_ENV = get_env_variable('REDIS_HOST')
-REDIS_PORT_ENV = get_env_variable('REDIS_PORT')
+REDIS_HOST = get_env_variable('REDIS_HOST')
+REDIS_PORT = get_env_variable('REDIS_PORT')
 
 POSTGRES_HOST = get_env_variable('POSTGRES_HOST')
 POSTGRES_PORT = get_env_variable('POSTGRES_PORT')
@@ -150,10 +149,10 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [(REDIS_HOST_ENV, REDIS_PORT_ENV)],  # Убедитесь, что Redis работает на этом хосте и порту
+            "hosts": [(REDIS_HOST, REDIS_PORT)],  # Убедитесь, что Redis работает на этом хосте и порту
         },
     },
 }
 
-CELERY_BROKER_URL = f'redis://{REDIS_HOST_ENV}:{REDIS_PORT_ENV}/0'
-CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST_ENV}:{REDIS_PORT_ENV}/0'
+CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
+CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}/0'
