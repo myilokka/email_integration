@@ -45,12 +45,12 @@ class EmailService:
                                             message="Ошибка аутентификации. Проверьте правильность пароля приложения."
                                                     "Убедитесь, что вы используете пароль приложения, если включена двухфакторная аутентификация.")
             else:
-                return EmailServiceException(code=500, message=f"Ошибка IMAP: {e}")
+                raise EmailServiceException(code=500, message=f"Ошибка IMAP: {e}")
 
     def _disconnect(self):
         self.mailbox.logout()
 
-    def decode_mime_words(self, s):
+    def decode_mime_words(self, s: str) -> str:
         """Декодирует заголовки MIME (например, тему)"""
         decoded_words = decode_header(s)
         decoded_string = ''.join(
@@ -59,7 +59,7 @@ class EmailService:
         )
         return decoded_string
 
-    def parse_email_part(self, part):
+    def parse_email_part(self, part) -> tuple[str | None, str | None | dict]:
         """Извлекает текст и вложения из отдельной части письма"""
         content_type = part.get_content_type()
         content_disposition = part.get("Content-Disposition", "")
@@ -76,7 +76,7 @@ class EmailService:
 
         return None, None
 
-    def fetch_emails(self):
+    def fetch_emails(self) -> dict:
         self._connect()
         self.mailbox.select("inbox")
 
@@ -85,7 +85,7 @@ class EmailService:
         status, messages = self.mailbox.search(None, 'ALL')
         if status != 'OK':
             logging.error('Ошибка при попытке получить список сообщений.')
-            return
+            raise EmailServiceException(code=500, message="Ошибка получения списка сообщений.")
 
         messages = messages[0].split()
         messages_count = len(messages)
@@ -118,17 +118,14 @@ class EmailService:
 
             unique_hash = hashlib.sha256(raw_email).hexdigest()
             try:
-                exist_email = EmailMessage.objects.get(unique_hash=unique_hash)
+                EmailMessage.objects.get(unique_hash=unique_hash)
                 checked_messages += 1
                 yield {
                     'checked_messages': checked_messages
                 }
+                continue
             except EmailMessage.DoesNotExist:
                 pass
-
-            # Проверяем, что письмо еще не было импортировано
-            if EmailMessage.objects.filter(unique_hash=unique_hash).exists():
-                continue
 
             message = message_from_bytes(raw_email)
 
