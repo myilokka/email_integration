@@ -3,28 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <title>Email Import</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        #progress-bar {
+            height: 20px;
+            margin-bottom: 20px;
+        }
+
+        #progress {
+            height: 100%;
+            background-color: #4CAF50;
+        }
+
+        #checked-messages {
+            margin-bottom: 30px;
+        }
+
+        #checked-messages tfoot td {
+            font-weight: bold;
+        }
+
+        .message-content {
+            max-height: 100px; /* Adjust the maximum height as needed */
+            overflow: auto; /* Add scrolling when content exceeds the height */
+            white-space: pre-wrap; /* Preserve line breaks in the content */
+        }
+    </style>
 </head>
 <body>
-
-<h1>Список сообщений</h1>
+<h1>Email Import Dashboard</h1>
 
 <table id="checked-messages">
     <tfoot>
     <tr>
-        <td colspan="3">Проверенные сообщения: <span id="checked-message-count">0</span></td>
+        <td colspan="3">Checked Messages: <span id="checked-message-count">0</span></td>
     </tr>
     </tfoot>
 </table>
 
-<div id="progress-bar" style="width: 100%; background: #ddd;">
-    <div id="progress" style="width: 0%; background: #4caf50; height: 20px;"></div>
+<div id="progress-bar">
+    <div id="progress"></div>
 </div>
+
 <table id="new-messages">
     <thead>
     <tr>
-        <th>Тема</th>
-        <th>Дата отправки</th>
-        <th>Описание</th>
+        <th>Subject</th>
+        <th>Sent Date</th>
+        <th>Content</th>
     </tr>
     </thead>
     <tbody id="new-messages-tbody"></tbody>
@@ -69,15 +122,16 @@
                     if (newMessagesTbody) {
                         const row = document.createElement("tr");
                         row.innerHTML = `
-                            <td>${data.message.subject}</td>
-                            <td>${data.message.send_date}</td>
-                            <td>${data.message.content}</td>
-                        `;
+                    <td>${data.message.subject}</td>
+                    <td>${data.message.send_date}</td>
+                    <td class="message-content">${data.message.content}</td>
+                `;
                         newMessagesTbody.appendChild(row);
                     } else {
                         console.error('Элемент с id "new-messages-tbody" не найден');
                     }
                 }
+
             } catch (error) {
                 console.error('Ошибка при обработке сообщения:', error);
             }
